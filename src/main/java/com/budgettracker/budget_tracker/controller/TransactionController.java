@@ -1,5 +1,7 @@
 package com.budgettracker.budget_tracker.controller;
 
+import com.budgettracker.budget_tracker.dto.BudgetSummaryResponse;
+import com.budgettracker.budget_tracker.dto.ReportDataResponse;
 import com.budgettracker.budget_tracker.dto.TransactionRequest;
 import com.budgettracker.budget_tracker.dto.TransactionResponse;
 import com.budgettracker.budget_tracker.service.TransactionService;
@@ -9,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -22,11 +25,14 @@ public class TransactionController {
     @PostMapping
     public ResponseEntity<TransactionResponse> createTransaction(
             @Valid @RequestBody TransactionRequest request,
-            @RequestParam Long userId
+            Principal principal
     ) {
 
         TransactionResponse response =
-                transactionService.createTransaction(request, userId);
+                transactionService.createTransaction(
+                        request,
+                        principal.getName()
+                );
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -35,11 +41,13 @@ public class TransactionController {
 
     @GetMapping
     public ResponseEntity<List<TransactionResponse>> getTransactions(
-            @RequestParam Long userId
+            Principal principal
     ) {
 
         List<TransactionResponse> transactions =
-                transactionService.getTransactionsByUser(userId);
+                transactionService.getTransactionsByUser(
+                        principal.getName()
+                );
 
         return ResponseEntity.ok(transactions);
     }
@@ -47,12 +55,12 @@ public class TransactionController {
     @GetMapping("/category/{categoryId}")
     public ResponseEntity<List<TransactionResponse>> getTransactionsByCategory(
             @PathVariable Long categoryId,
-            @RequestParam Long userId
+            Principal principal
     ) {
 
         List<TransactionResponse> transactions =
                 transactionService.getTransactionsByCategory(
-                        userId,
+                        principal.getName(),
                         categoryId
                 );
 
@@ -61,14 +69,14 @@ public class TransactionController {
 
     @GetMapping("/date-range")
     public ResponseEntity<List<TransactionResponse>> getTransactionsByDateRange(
-            @RequestParam Long userId,
             @RequestParam LocalDate startDate,
-            @RequestParam LocalDate endDate
+            @RequestParam LocalDate endDate,
+            Principal principal
     ) {
 
         List<TransactionResponse> transactions =
                 transactionService.getTransactionsByDateRange(
-                        userId,
+                        principal.getName(),
                         startDate,
                         endDate
                 );
@@ -76,18 +84,70 @@ public class TransactionController {
         return ResponseEntity.ok(transactions);
     }
 
+    @GetMapping("/summary")
+    public ResponseEntity<BudgetSummaryResponse> getBudgetSummary(
+            Principal principal
+    ) {
+
+        BudgetSummaryResponse summary =
+                transactionService.getBudgetSummary(
+                        principal.getName()
+                );
+
+        return ResponseEntity.ok(summary);
+    }
+
+    @GetMapping("/reports/daily")
+    public ResponseEntity<List<ReportDataResponse>> getDailyReport(
+            Principal principal
+    ) {
+
+        List<ReportDataResponse> report =
+                transactionService.getDailyReport(
+                        principal.getName()
+                );
+
+        return ResponseEntity.ok(report);
+    }
+
+    @GetMapping("/reports/weekly")
+    public ResponseEntity<List<ReportDataResponse>> getWeeklyReport(
+            Principal principal
+    ) {
+
+        List<ReportDataResponse> report =
+                transactionService.getWeeklyReport(
+                        principal.getName()
+                );
+
+        return ResponseEntity.ok(report);
+    }
+
+    @GetMapping("/reports/monthly")
+    public ResponseEntity<List<ReportDataResponse>> getMonthlyReport(
+            Principal principal
+    ) {
+
+        List<ReportDataResponse> report =
+                transactionService.getMonthlyReport(
+                        principal.getName()
+                );
+
+        return ResponseEntity.ok(report);
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<TransactionResponse> updateTransaction(
             @PathVariable Long id,
             @Valid @RequestBody TransactionRequest request,
-            @RequestParam Long userId
+            Principal principal
     ) {
 
         TransactionResponse response =
                 transactionService.updateTransaction(
                         id,
                         request,
-                        userId
+                        principal.getName()
                 );
 
         return ResponseEntity.ok(response);
@@ -96,10 +156,13 @@ public class TransactionController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTransaction(
             @PathVariable Long id,
-            @RequestParam Long userId
+            Principal principal
     ) {
 
-        transactionService.deleteTransaction(id, userId);
+        transactionService.deleteTransaction(
+                id,
+                principal.getName()
+        );
 
         return ResponseEntity.noContent().build();
     }
