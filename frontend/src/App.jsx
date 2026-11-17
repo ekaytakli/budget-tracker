@@ -6,7 +6,6 @@ import {
 } from "react-router-dom";
 
 import LoginPage from "./pages/LoginPage";
-import RegisterPage from "./pages/RegisterPage";
 import DashboardPage from "./pages/DashboardPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -28,7 +27,7 @@ function App() {
 
                 <Route
                     path="/register"
-                    element={<RegisterPage />}
+                    element={<Navigate to="/login" replace />}
                 />
 
                 <Route

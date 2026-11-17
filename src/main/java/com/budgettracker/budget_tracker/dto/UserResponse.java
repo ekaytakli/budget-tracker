@@ -10,4 +10,6 @@ public class UserResponse {
     private Long id;
     private String username;
     private String email;
+    private com.budgettracker.budget_tracker.entity.UserRole role;
+    private boolean active;
 }

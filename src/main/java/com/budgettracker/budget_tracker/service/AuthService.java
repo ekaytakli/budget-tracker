@@ -22,6 +22,9 @@ public class AuthService {
 
     public UserResponse register(RegisterRequest request) {
 
+        if (request.getPassword().getBytes(java.nio.charset.StandardCharsets.UTF_8).length > 72)
+            throw new IllegalArgumentException("Parola UTF-8 biçiminde en fazla 72 bayt olabilir.");
+
         if (userRepository.existsByUsername(request.getUsername())) {
             throw new ConflictException("Username already exists");
         }
@@ -42,6 +45,8 @@ public class AuthService {
                 .id(savedUser.getId())
                 .username(savedUser.getUsername())
                 .email(savedUser.getEmail())
+                .role(savedUser.getRole())
+                .active(savedUser.isActive())
                 .build();
     }
 
@@ -52,6 +57,8 @@ public class AuthService {
                         new AuthenticationException(
                                 "Invalid username or password"
                         ));
+
+        if (!user.isActive()) throw new AuthenticationException("Invalid username or password");
 
         if (!passwordEncoder.matches(
                 request.getPassword(),
@@ -69,6 +76,7 @@ public class AuthService {
                 .userId(user.getId())
                 .username(user.getUsername())
                 .email(user.getEmail())
+                .role(user.getRole())
                 .build();
     }
 }

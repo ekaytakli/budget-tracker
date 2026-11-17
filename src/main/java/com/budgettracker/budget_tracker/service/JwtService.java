@@ -10,17 +10,20 @@ import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
 @Service
+@lombok.RequiredArgsConstructor
 public class JwtService {
 
-    private static final String SECRET_KEY =
-            "budget-tracker-super-secret-jwt-key-2026-secure";
+    private final com.budgettracker.budget_tracker.repository.UserRepository users;
+
+    @org.springframework.beans.factory.annotation.Value("${app.jwt-secret}")
+    private String secretKey;
 
     private static final long EXPIRATION_TIME =
             1000 * 60 * 60 * 24; // 24 saat
 
     private SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(
-                SECRET_KEY.getBytes(StandardCharsets.UTF_8)
+                secretKey.getBytes(StandardCharsets.UTF_8)
         );
     }
 
@@ -28,6 +31,7 @@ public class JwtService {
 
         return Jwts.builder()
                 .subject(username)
+                .claim("cv", users.findByUsername(username).orElseThrow().getCredentialVersion())
                 .issuedAt(new Date())
                 .expiration(
                         new Date(System.currentTimeMillis() + EXPIRATION_TIME)
@@ -39,6 +43,11 @@ public class JwtService {
     public String extractUsername(String token) {
 
         return extractClaims(token).getSubject();
+    }
+
+    public long credentialVersion(String token) {
+        Object value=extractClaims(token).get("cv");
+        return value instanceof Number number ? number.longValue() : -1;
     }
 
     public boolean isTokenValid(

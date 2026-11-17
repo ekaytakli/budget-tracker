@@ -39,7 +39,7 @@ function LoginPage() {
     return (
         <div className="auth-page">
             <div className="auth-card">
-                <h1>Budget Tracker</h1>
+                <h1>Budget Tracker · Şirket Finans</h1>
                 <h2>Giriş Yap</h2>
 
                 {error && (
@@ -91,17 +91,7 @@ function LoginPage() {
                     </button>
                 </form>
 
-                <div className="auth-switch">
-                    <span>Hesabın yok mu? </span>
-
-                    <button
-                        className="secondary-button"
-                        type="button"
-                        onClick={() => navigate("/register")}
-                    >
-                        Hesap Oluştur
-                    </button>
-                </div>
+                <p className="auth-switch">Hesap ve yetki işlemleri için şirket yöneticinize başvurun.</p>
             </div>
         </div>
     );

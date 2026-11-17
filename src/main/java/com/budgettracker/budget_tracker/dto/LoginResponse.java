@@ -11,4 +11,5 @@ public class LoginResponse {
     private Long userId;
     private String username;
     private String email;
+    private com.budgettracker.budget_tracker.entity.UserRole role;
 }

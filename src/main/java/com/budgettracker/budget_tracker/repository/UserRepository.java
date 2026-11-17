@@ -7,6 +7,10 @@ import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long> {
 
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @org.springframework.data.jpa.repository.Query("select u from User u order by u.id")
+    java.util.List<User> lockAllUsers();
+
     Optional<User> findByUsername(String username);
 
     Optional<User> findByEmail(String email);

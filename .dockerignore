@@ -1,0 +1,13 @@
+.git
+.env
+.env.*
+target
+frontend
+backups
+scripts
+.idea
+.vscode
+.qa
+*.log
+.qa
+src/main/resources/application.properties

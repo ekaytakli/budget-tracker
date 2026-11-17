@@ -1,3 +1,13 @@
+# Budget Tracker · Şirket Finans
+
+Tek şirket için ortak gelir/gider, cari hesap, vade, rol yönetimi ve işlem geçmişi.
+
+**Güncel kurulum, kullanım ve sınırlar:** [Şirket çalışma alanı rehberi](docs/COMPANY-WORKSPACE.md).
+
+Aşağıdaki bölüm projenin önceki kişisel bütçe sürümünü anlatır; güncel kurulum için üstteki rehberi kullanın.
+
+---
+
 # 💰 Budget Tracker
 
 Budget Tracker, kullanıcıların gelir ve giderlerini takip edebildiği, finansal durumlarını görüntüleyebildiği full-stack bir bütçe takip uygulamasıdır.

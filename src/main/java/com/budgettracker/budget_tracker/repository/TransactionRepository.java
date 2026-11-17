@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.time.LocalDate;
 import java.util.List;
 
-public interface TransactionRepository extends JpaRepository<Transaction, Long> {
+public interface TransactionRepository extends JpaRepository<Transaction, Long>, org.springframework.data.jpa.repository.JpaSpecificationExecutor<Transaction> {
 
     List<Transaction> findByUserId(Long userId);
 

@@ -12,6 +12,22 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler({IllegalArgumentException.class, org.springframework.http.converter.HttpMessageNotReadableException.class})
+    public ResponseEntity<Map<String,Object>> badRequest(Exception e) {
+        String message = e instanceof IllegalArgumentException ? e.getMessage() : "Alanları ve tutar biçimini kontrol edin.";
+        return ResponseEntity.badRequest().body(Map.of("message",message));
+    }
+
+    @ExceptionHandler({org.springframework.dao.OptimisticLockingFailureException.class, jakarta.persistence.OptimisticLockException.class})
+    public ResponseEntity<Map<String,Object>> stale(Exception e) {
+        return ResponseEntity.status(409).body(Map.of("message","Kayıt başka biri tarafından değiştirildi. Listeyi yenileyin."));
+    }
+
+    @ExceptionHandler(org.springframework.dao.DataIntegrityViolationException.class)
+    public ResponseEntity<Map<String,Object>> integrity(Exception e) {
+        return ResponseEntity.status(409).body(Map.of("message","Kayıt mevcut verilerle çakışıyor. Alanları kontrol edin."));
+    }
+
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<Map<String, Object>> handleResourceNotFound(
             ResourceNotFoundException exception
@@ -66,6 +82,7 @@ public class GlobalExceptionHandler {
         response.put("status", HttpStatus.BAD_REQUEST.value());
         response.put("error", "Bad Request");
         response.put("validationErrors", errors);
+        response.put("message", "Alanları kontrol edin: " + String.join(", ", errors.keySet()));
 
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)

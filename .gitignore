@@ -43,3 +43,12 @@ build/
 ### OS files ###
 .DS_Store
 Thumbs.db
+
+# Yerel ayarlar ve parolalar
+.env
+.env.*
+!.env.example
+# Private database backups
+backups/
+*.dump
+.qa/

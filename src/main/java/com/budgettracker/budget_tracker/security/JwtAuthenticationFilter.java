@@ -49,14 +49,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 User user = userRepository.findByUsername(username)
                         .orElse(null);
 
-                if (user != null
+                if (user != null && user.isActive()
+                        && jwtService.credentialVersion(token) == user.getCredentialVersion()
                         && jwtService.isTokenValid(token, user.getUsername())) {
 
                     UsernamePasswordAuthenticationToken authentication =
                             new UsernamePasswordAuthenticationToken(
                                     user.getUsername(),
                                     null,
-                                    Collections.emptyList()
+                                    java.util.List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
                             );
 
                     SecurityContextHolder
