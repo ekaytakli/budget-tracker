@@ -26,11 +26,11 @@ public class AuthService {
             throw new IllegalArgumentException("Parola UTF-8 biçiminde en fazla 72 bayt olabilir.");
 
         if (userRepository.existsByUsername(request.getUsername())) {
-            throw new ConflictException("Username already exists");
+            throw new ConflictException("Bu kullanıcı adı zaten kullanılıyor.");
         }
 
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new ConflictException("Email already exists");
+            throw new ConflictException("Bu e-posta adresi zaten kullanılıyor.");
         }
 
         User user = User.builder()

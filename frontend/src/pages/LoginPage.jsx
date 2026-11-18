@@ -1,17 +1,22 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import api from "../api/axios";
+import { message } from "../api/errors";
+import "./LoginPage.css";
 
 function LoginPage() {
     const navigate = useNavigate();
+    const location = useLocation();
 
-    const [username, setUsername] = useState("");
+    const [username, setUsername] = useState(location.state?.username || "");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
 
     const handleSubmit = async (event) => {
         event.preventDefault();
+        if (loading) return;
 
         setError("");
         setLoading(true);
@@ -28,8 +33,9 @@ function LoginPage() {
             navigate("/dashboard");
         } catch (error) {
             setError(
-                error.response?.data?.message ||
-                "Giriş yapılırken bir hata oluştu."
+                error.response?.status === 401
+                    ? "Kullanıcı adı veya parola hatalı."
+                    : message(error)
             );
         } finally {
             setLoading(false);
@@ -37,13 +43,18 @@ function LoginPage() {
     };
 
     return (
-        <div className="auth-page">
+        <div className="auth-page ledger-auth">
+            <section className="auth-entry">
             <div className="auth-card">
-                <h1>Budget Tracker · Şirket Finans</h1>
-                <h2>Giriş Yap</h2>
+                <a className="auth-brand" href="/login"><span>bt.</span> budgettracker</a>
+                <h1>Giriş yap</h1>
+                <p className="auth-intro">Şirket hesabınızla devam edin.</p>
+                {location.state?.registered && (
+                    <div className="auth-success" role="status">Hesabınız oluşturuldu. Şimdi giriş yapabilirsiniz.</div>
+                )}
 
                 {error && (
-                    <div className="error-message">
+                    <div className="error-message" role="alert">
                         {error}
                     </div>
                 )}
@@ -53,10 +64,12 @@ function LoginPage() {
                     onSubmit={handleSubmit}
                 >
                     <div className="form-group">
-                        <label>Kullanıcı Adı</label>
+                        <label htmlFor="login-username">Kullanıcı adı</label>
 
                         <input
                             type="text"
+                            id="login-username"
+                            autoComplete="username"
                             value={username}
                             onChange={(event) =>
                                 setUsername(event.target.value)
@@ -67,10 +80,13 @@ function LoginPage() {
                     </div>
 
                     <div className="form-group">
-                        <label>Şifre</label>
+                        <label htmlFor="login-password">Parola</label>
 
+                        <div className="auth-password">
                         <input
-                            type="password"
+                            type={showPassword ? "text" : "password"}
+                            id="login-password"
+                            autoComplete="current-password"
                             value={password}
                             onChange={(event) =>
                                 setPassword(event.target.value)
@@ -78,6 +94,13 @@ function LoginPage() {
                             placeholder="Şifrenizi girin"
                             required
                         />
+                        <button type="button" className="auth-password-toggle"
+                            aria-controls="login-password" aria-pressed={showPassword}
+                            aria-label={showPassword ? "Parolayı gizle" : "Parolayı göster"}
+                            onClick={() => setShowPassword((value) => !value)}>
+                            {showPassword ? "Gizle" : "Göster"}
+                        </button>
+                        </div>
                     </div>
 
                     <button
@@ -87,12 +110,13 @@ function LoginPage() {
                     >
                         {loading
                             ? "Giriş yapılıyor..."
-                            : "Giriş Yap"}
+                            : "Giriş yap"}
                     </button>
                 </form>
 
-                <p className="auth-switch">Hesap ve yetki işlemleri için şirket yöneticinize başvurun.</p>
+                <p className="auth-switch">Hesabınız yok mu? <Link to="/register">Kayıt ol</Link></p>
             </div>
+            </section>
         </div>
     );
 }

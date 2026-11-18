@@ -1,0 +1,32 @@
+﻿.ledger-auth {
+  display: grid;
+  place-items: center;
+  min-height: 100svh;
+  padding: 24px;
+  background: #faf9f6;
+  color: #302f2b;
+  font-family: "Segoe UI", Arial, sans-serif;
+}
+.auth-entry { width: 100%; max-width: 390px; }
+.ledger-auth .auth-card { max-width: none; padding: 32px; background: #fff; border: 1px solid #e7e3db; border-radius: 10px; box-shadow: none; }
+.auth-brand { display: flex; align-items: center; gap: 10px; color: #302f2b; text-decoration: none; font-size: 19px; font-weight: 600; letter-spacing: -0.5px; margin-bottom: 32px; }
+.auth-brand > span { width: 33px; height: 33px; display: grid; place-items: center; background: #bc512f; border-radius: 7px; color: #fff; font: bold 22px Georgia, serif; }
+.ledger-auth .auth-card h1 { text-align: left; margin: 0 0 8px; font-size: 25px; font-weight: 600; letter-spacing: -0.6px; }
+.auth-intro { margin: 0 0 28px; color: #817b70; font-size: 13px; line-height: 1.6; }
+.ledger-auth .auth-form { gap: 20px; }
+.ledger-auth .form-group { display: flex; flex-direction: column; gap: 8px; }
+.ledger-auth label { font-size: 12px; font-weight: 500; color: #625a4e; }
+.ledger-auth input { width: 100%; padding: 12px; color: #302f2b; background: #fff; border: 1px solid #ded9ce; border-radius: 6px; font-size: 14px; }
+.ledger-auth input:focus { outline: 2px solid #e7c8b9; outline-offset: 1px; border-color: #bc765b; }
+.ledger-auth .primary-button { margin-top: 4px; background: #bc512f; border: 1px solid #bc512f; border-radius: 6px; padding: 12px; font-size: 13px; font-weight: 600; color: #fff; }
+.ledger-auth .primary-button:hover { background: #a84324; }
+.ledger-auth .primary-button:disabled { opacity: 0.6; cursor: wait; }
+.auth-password { position: relative; }
+.ledger-auth .auth-password input { padding-right: 68px; }
+.auth-password-toggle { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); padding: 9px 7px; background: transparent; border: 0; color: #a84324; font-size: 12px; }
+.ledger-auth button:focus-visible, .auth-brand:focus-visible { outline: 2px solid #bc512f; outline-offset: 3px; }
+.ledger-auth .auth-switch { margin: 24px 0 0; text-align: left; font-size: 11px; line-height: 1.8; color: #898478; }
+.auth-switch a { color: #a84324; font-weight: 600; text-underline-offset: 3px; }
+.ledger-auth .auth-help { margin: 0; color: #77746c; font-size: 11px; line-height: 1.6; }
+.auth-success { margin-bottom: 20px; padding: 12px; border: 1px solid #c9dfce; border-radius: 6px; background: #eff7f0; color: #386241; font-size: 13px; line-height: 1.6; }
+@media (max-width: 480px) { .ledger-auth { padding: 18px; } .ledger-auth .auth-card { padding: 26px; } }

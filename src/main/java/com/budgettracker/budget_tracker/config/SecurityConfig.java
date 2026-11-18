@@ -44,9 +44,9 @@ public class SecurityConfig {
                         .dispatcherTypeMatchers(jakarta.servlet.DispatcherType.ERROR).permitAll()
                         .dispatcherTypeMatchers(jakarta.servlet.DispatcherType.ERROR).permitAll()
                         .requestMatchers(
-                                "/api/auth/login", "/api/health"
+                                "/api/auth/login", "/api/auth/register", "/api/health"
                         ).permitAll()
-                        .requestMatchers("/api/auth/register", "/api/transactions/**", "/api/categories/**").denyAll()
+                        .requestMatchers("/api/transactions/**", "/api/categories/**").denyAll()
                         .anyRequest().authenticated()
                 )
 

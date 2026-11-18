@@ -77,11 +77,33 @@ class CompanyLedgerIntegrationTests {
     @Test void authenticationAndRolesAreEnforcedAtTheApi() throws Exception {
         assertEquals(401,call("GET","/company/transactions",null,null).statusCode());
         assertEquals(403,call("POST","/company/transactions",viewer,entry("INCOME","10","PAID")).statusCode());
-        assertEquals(401,call("POST","/auth/register",null,Map.of("username","intruder","email","x@example.test","password","something-secret")).statusCode());
         assertEquals(403,call("GET","/company/audit",accountant,null).statusCode());
         assertEquals(403,call("POST","/users",accountant,Map.of("username","intruder","email","x@example.test","password","something-secret")).statusCode());
         assertEquals(403,call("POST","/transactions",viewer,entry("INCOME","10","PAID")).statusCode());
         assertEquals(0,transactions.count());
+    }
+
+    @Test void publicRegistrationCreatesOnlyAViewerAndSupportsLogin() throws Exception {
+        Map<String,Object> registration=new HashMap<>(Map.of("username","newmember","email","new@example.test","password","test-password-123"));
+        registration.put("role","ADMIN");
+        HttpResponse<String> response=call("POST","/auth/register",null,registration);
+        assertEquals(201,response.statusCode(),response.body());
+        JsonNode user=tree(response);
+        assertEquals("VIEWER",user.get("role").asText());
+        assertFalse(user.has("password"));
+        assertTrue(encoder.matches("test-password-123",users.findByUsername("newmember").orElseThrow().getPassword()));
+        JsonNode login=tree(call("POST","/auth/login",null,Map.of("username","newmember","password","test-password-123")));
+        String token=login.get("token").asText();
+        assertEquals(200,call("GET","/company/summary",token,null).statusCode());
+        assertEquals(403,call("POST","/company/transactions",token,entry("INCOME","10","PAID")).statusCode());
+        assertEquals(403,call("GET","/users",token,null).statusCode());
+        assertEquals(409,call("POST","/auth/register",null,registration).statusCode());
+        registration.put("username","othermember");
+        assertEquals(409,call("POST","/auth/register",null,registration).statusCode());
+        registration.put("email","other@example.test");
+        registration.put("password","short");
+        assertEquals(400,call("POST","/auth/register",null,registration).statusCode());
+        assertEquals(4,users.count());
     }
 
     @Test void exactTotalsSeparateCashFromReceivablesAndIgnoreCancelledEntries() throws Exception {

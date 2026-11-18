@@ -12,6 +12,7 @@ import { Bar } from "react-chartjs-2";
 import api from "../api/axios";
 import { message } from "../api/errors";
 import "./Workspace.css";
+import "./LedgerTheme.css";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
 const money = (value) =>
@@ -361,20 +362,32 @@ export default function DashboardPage() {
   );
   const title = tabs.find(([key]) => key === tab)?.[1];
   const pendingCount = Object.entries(toParams(request.filters)).length;
+  function showPending(type) {
+    const filters = {
+      ...request.filters,
+      type,
+      status: "PENDING",
+      categoryId: "",
+      includeCancelled: false,
+    };
+    setDraft(filters);
+    setRequest({ filters, page: 0 });
+    setTab("ledger");
+  }
   const chart = {
     labels: ["Gelir", "Gider"],
     datasets: [
       {
         label: "Kaydedilen toplam",
         data: [summary?.income || 0, summary?.expense || 0],
-        backgroundColor: "#d7e7e5",
-        borderRadius: 5,
+        backgroundColor: "#dfd9cd",
+        borderRadius: 0,
       },
       {
         label: "Tahsil / Ödeme",
         data: [summary?.received || 0, summary?.paid || 0],
-        backgroundColor: ["#117c70", "#e38f61"],
-        borderRadius: 5,
+        backgroundColor: ["#343f38", "#d3532e"],
+        borderRadius: 0,
       },
     ],
   };
@@ -383,71 +396,30 @@ export default function DashboardPage() {
     <div className="workspace">
       <aside className="ws-sidebar">
         <a className="ws-brand" href="/dashboard">
-          <span className="brand-symbol">B</span>
+          <span className="brand-symbol">bt.</span>
           <span>
             budget<span className="brand-light">tracker</span>
-            <small>ŞİRKET FİNANS</small>
           </span>
         </a>
-        <div className="ws-company">
-          <span className="company-icon">▦</span>
-          <div>
-            <strong>Şirket çalışma alanı</strong>
-            <small>Ortak hesap kayıtları · TRY</small>
-          </div>
-        </div>
-        <span className="nav-label">ÇALIŞMA ALANI</span>
         <nav aria-label="Ana menü">
-          {visibleTabs.map(([key, label, icon]) => (
+          {visibleTabs.map(([key, label]) => (
             <button
               key={key}
               className={tab === key ? "selected" : ""}
+              aria-current={tab === key ? "page" : undefined}
               onClick={() => {
                 setTab(key);
                 setError("");
               }}
             >
-              <span aria-hidden="true">{icon}</span>
               {label}
-              {tab === key && <i />}
             </button>
           ))}
         </nav>
-        <div className="sidebar-bottom">
-          <span className="avatar">
-            {(me?.username || "?").slice(0, 2).toUpperCase()}
-          </span>
-          <div>
-            <strong>{me?.username || "Bağlanıyor…"}</strong>
+        <details className="ws-account">
+          <summary>{me?.username || "Hesabım"}</summary>
+          <div className="ws-account-menu">
             <small>{roles[me?.role] || "Oturum kontrolü"}</small>
-          </div>
-          <button
-            title="Çıkış yap"
-            aria-label="Çıkış yap"
-            onClick={() => {
-              localStorage.removeItem("token");
-              localStorage.removeItem("username");
-              navigate("/login");
-            }}
-          >
-            ↪
-          </button>
-        </div>
-      </aside>
-      <main className="ws-main">
-        <header className="ws-topbar">
-          <span>
-            Çalışma alanı <span className="slash">/</span>{" "}
-            <strong>{title}</strong>
-          </span>
-          <span className="ws-today">
-            {new Intl.DateTimeFormat("tr-TR", {
-              day: "numeric",
-              month: "long",
-              year: "numeric",
-            }).format(new Date())}
-          </span>
-          <div className="ws-actions">
             <button className="ws-button" onClick={() => open("password")}>
               Parola değiştir
             </button>
@@ -462,13 +434,16 @@ export default function DashboardPage() {
               Çıkış
             </button>
           </div>
-        </header>
+        </details>
+      </aside>
+      <main className="ws-main">
         <div className="ws-content">
           <div className="ws-heading">
             <div>
-              <span className="eyebrow">FİNANS YÖNETİMİ</span>
               <h1>{title}</h1>
-              <p>Şirketinizin finansal hareketleri, tek bir yerde.</p>
+              <p className="ws-heading-context">
+                {pendingCount ? "Seçili filtrelere göre şirket kayıtları" : "Şirketinizin ortak finans çalışma alanı"}
+              </p>
             </div>
             <div className="ws-actions">
               <button
@@ -530,18 +505,23 @@ export default function DashboardPage() {
               Kayıtlar güncelleniyor…
             </div>
           )}
+          {!loading && error && !summary && (
+            <div className="ws-panel ws-empty">
+              <h3>Kayıtlar yüklenemedi</h3>
+              <p>Bağlantı sağlandığında finansal bilgileriniz burada görünecek.</p>
+              <button className="ws-button" onClick={refresh}>Tekrar dene</button>
+            </div>
+          )}
 
           {["overview", "ledger", "reports"].includes(tab) && (
             <>
-              <form
+              <details className="ws-filter-disclosure ws-panel">
+                <summary>Filtreler <span>{pendingCount ? `${pendingCount} filtre aktif` : "Tüm kayıtlar"}</span></summary>
+                <form
                 className="ws-filters ws-panel"
                 onSubmit={applyFilters}
                 aria-label="Kayıt filtreleri"
               >
-                <div className="filter-title">
-                  <strong>Görünümü daralt</strong>
-                  <span>Özet ve dışa aktarma aynı filtreleri kullanır.</span>
-                </div>
                 <div className="filter-fields">
                   <Field label="Arama">
                     {(id) => (
@@ -683,6 +663,7 @@ export default function DashboardPage() {
                   İptal edilenleri listede göster
                 </label>
               </form>
+              </details>
               {summary && (
                 <>
                   <div className="ws-metrics">
@@ -711,7 +692,21 @@ export default function DashboardPage() {
                     />
                   </div>
                   {tab === "overview" && (
-                    <div className="ws-overview-grid">
+                    <div className="ws-pending-links" aria-label="Bekleyen işlemler">
+                      <button onClick={() => showPending("INCOME")} disabled={loading}>
+                        <span>Bekleyen alacak <strong className="positive">{money(summary.receivable)}</strong></span>
+                        <span aria-hidden="true">→</span>
+                      </button>
+                      <button onClick={() => showPending("EXPENSE")} disabled={loading}>
+                        <span>Bekleyen borç <strong className="negative">{money(summary.payable)}</strong></span>
+                        <span aria-hidden="true">→</span>
+                      </button>
+                    </div>
+                  )}
+                  {tab === "overview" && (
+                    <details className="ws-overview-details">
+                      <summary>Grafik ve ödeme detayları</summary>
+                      <div className="ws-overview-grid">
                       <section className="ws-panel">
                         <div className="panel-title">
                           <div>
@@ -782,6 +777,7 @@ export default function DashboardPage() {
                         </p>
                       </section>
                     </div>
+                    </details>
                   )}
                 </>
               )}
@@ -809,7 +805,7 @@ export default function DashboardPage() {
                   </button>
                 </div>
                 <div className="ws-table-wrap">
-                  <table className="ws-table">
+                  <table className={`ws-table ${entries.content.length ? "" : "ws-table-empty"}`}>
                     <thead>
                       <tr>
                         <th>Tarih / Belge</th>
@@ -910,18 +906,23 @@ export default function DashboardPage() {
                           </td>
                         </tr>
                       ))}
-                      {!entries.content.length && !loading && (
+                      {!entries.content.length && !loading && !error && (
                         <tr>
                           <td colSpan="6">
                             <div className="ws-empty">
                               <span>⇄</span>
-                              <h3>Henüz bir hareket yok</h3>
+                              <h3>{pendingCount ? "Filtrelere uygun hareket yok" : "Henüz bir hareket yok"}</h3>
                               <p>
                                 {pendingCount
                                   ? "Filtrelerinizi genişletin veya temizleyin."
                                   : "İlk gelir veya gider kaydınızı ekleyerek başlayın."}
                               </p>
-                              {canWrite && (
+                              {pendingCount ? (
+                                <button className="ws-button" onClick={() => {
+                                  setDraft({ ...blankFilters });
+                                  setRequest({ filters: { ...blankFilters }, page: 0 });
+                                }}>Filtreleri temizle</button>
+                              ) : canWrite && (
                                 <button
                                   className="ws-button primary"
                                   onClick={() => open("entry")}
