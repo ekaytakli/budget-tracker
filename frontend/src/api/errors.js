@@ -1,10 +1,12 @@
+const fieldLabels = { username: "Kullanıcı adı", email: "E-posta", password: "Parola" };
+
 export function message(error) {
   if (error.response?.status === 403)
     return "Bu işlem için yetkiniz bulunmuyor.";
   const data = error.response?.data;
   if (data?.validationErrors)
     return Object.entries(data.validationErrors)
-      .map(([key, value]) => `${key}: ${value}`)
+      .map(([key, value]) => `${fieldLabels[key] || key}: ${value}`)
       .join(" • ");
   return (
     data?.message ||

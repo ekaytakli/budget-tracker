@@ -34,7 +34,7 @@ public class UserController {
             @Valid @RequestBody RegisterRequest request, Principal principal
     ) {
         UserResponse savedUser = authService.register(request);
-        ledger.audit(principal.getName(),"CREATE","USER",savedUser.getId(),null,savedUser.getUsername()+" / VIEWER");
+        ledger.audit(principal.getName(),"CREATE","USER",savedUser.getId(),null,savedUser.getUsername()+" / "+savedUser.getRole());
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)

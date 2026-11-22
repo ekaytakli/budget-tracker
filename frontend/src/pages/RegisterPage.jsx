@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import { message } from "../api/errors";
+import { validateRegistration } from "./registration";
 import "./LoginPage.css";
 
 export default function RegisterPage() {
@@ -16,12 +17,9 @@ export default function RegisterPage() {
     event.preventDefault();
     if (loading) return;
     setError("");
-    if (form.password !== form.confirmation) {
-      setError("Parola tekrarı eşleşmiyor.");
-      return;
-    }
-    if (new TextEncoder().encode(form.password).length > 72) {
-      setError("Parola UTF-8 biçiminde en fazla 72 bayt olabilir. Daha kısa bir parola seçin.");
+    const validationError = validateRegistration(form);
+    if (validationError) {
+      setError(validationError);
       return;
     }
     setLoading(true);
@@ -69,7 +67,7 @@ export default function RegisterPage() {
                   aria-pressed={showPassword} aria-label={showPassword ? "Parolayı gizle" : "Parolayı göster"}
                   onClick={() => setShowPassword((value) => !value)}>{showPassword ? "Gizle" : "Göster"}</button>
               </div>
-              <small id="password-help" className="auth-help">En az 12 karakter kullanın.</small>
+              <small id="password-help" className="auth-help">En az 12 karakter, UTF-8 olarak en fazla 72 bayt kullanın.</small>
             </div>
             <div className="form-group">
               <label htmlFor="register-confirmation">Parola tekrarı</label>

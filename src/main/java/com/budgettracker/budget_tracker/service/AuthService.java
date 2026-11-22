@@ -5,6 +5,7 @@ import com.budgettracker.budget_tracker.dto.LoginResponse;
 import com.budgettracker.budget_tracker.dto.RegisterRequest;
 import com.budgettracker.budget_tracker.dto.UserResponse;
 import com.budgettracker.budget_tracker.entity.User;
+import com.budgettracker.budget_tracker.entity.UserRole;
 import com.budgettracker.budget_tracker.exception.AuthenticationException;
 import com.budgettracker.budget_tracker.exception.ConflictException;
 import com.budgettracker.budget_tracker.repository.UserRepository;
@@ -29,14 +30,16 @@ public class AuthService {
             throw new ConflictException("Bu kullanıcı adı zaten kullanılıyor.");
         }
 
-        if (userRepository.existsByEmail(request.getEmail())) {
+        String email = request.getEmail().toLowerCase(java.util.Locale.ROOT);
+        if (userRepository.existsByEmailIgnoreCase(email)) {
             throw new ConflictException("Bu e-posta adresi zaten kullanılıyor.");
         }
 
         User user = User.builder()
                 .username(request.getUsername())
-                .email(request.getEmail())
+                .email(email)
                 .password(passwordEncoder.encode(request.getPassword()))
+                .role(UserRole.USER)
                 .build();
 
         User savedUser = userRepository.save(user);

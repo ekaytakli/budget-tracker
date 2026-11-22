@@ -8,7 +8,7 @@ const api = axios.create({
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
 
-  if (token) {
+  if (token && !["/auth/login", "/auth/register"].includes(config.url)) {
     config.headers.Authorization = `Bearer ${token}`;
   }
 
@@ -22,7 +22,7 @@ api.interceptors.response.use(
   (error) => {
     if (
       error.response?.status === 401 &&
-      !error.config?.url?.includes("/auth/login")
+      !["/auth/login", "/auth/register"].includes(error.config?.url)
     ) {
       localStorage.removeItem("token");
       localStorage.removeItem("username");

@@ -49,10 +49,11 @@ Kullanıcı girdilerindeki Excel formül başlangıçları metne çevrilir.
 | ADMIN | Evet | Evet | Evet |
 | ACCOUNTANT | Evet | Evet | Hayır |
 | VIEWER | Evet | Hayır | Hayır |
+| USER | Evet | Hayır | Hayır |
 
 Yetkiler yalnızca ekranda değil API üzerinde uygulanır. Giriş ekranındaki **Kayıt ol**
 bağlantısıyla kullanıcı adı, e-posta ve en az 12 karakterlik parola ile hesap açılabilir.
-Yeni hesaplar VIEWER rolüyle şirket kayıtlarını görüntüleyebilir; yazma yetkisini
+Yeni hesaplar USER rolüyle şirket kayıtlarını görüntüleyebilir; yazma yetkisini
 yönetici ekip ekranından verir. Kayıt isteğinde yönetici rolü seçilemez.
 Eski güvensiz `/api/users` oluşturma işlemi kaldırıldı; aynı adres artık sadece
 yöneticinin DTO ile, BCrypt parolayla hesap oluşturmasına izin verir. Yanıtlarda

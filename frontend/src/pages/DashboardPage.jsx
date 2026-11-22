@@ -31,6 +31,7 @@ const roles = {
   ADMIN: "Yönetici",
   ACCOUNTANT: "Muhasebe",
   VIEWER: "Görüntüleme",
+  USER: "Kullanıcı",
 };
 const kinds = {
   CUSTOMER: "Müşteri",

@@ -83,13 +83,13 @@ class CompanyLedgerIntegrationTests {
         assertEquals(0,transactions.count());
     }
 
-    @Test void publicRegistrationCreatesOnlyAViewerAndSupportsLogin() throws Exception {
+    @Test void publicRegistrationCreatesOnlyAUserAndSupportsLogin() throws Exception {
         Map<String,Object> registration=new HashMap<>(Map.of("username","newmember","email","new@example.test","password","test-password-123"));
         registration.put("role","ADMIN");
         HttpResponse<String> response=call("POST","/auth/register",null,registration);
         assertEquals(201,response.statusCode(),response.body());
         JsonNode user=tree(response);
-        assertEquals("VIEWER",user.get("role").asText());
+        assertEquals("USER",user.get("role").asText());
         assertFalse(user.has("password"));
         assertTrue(encoder.matches("test-password-123",users.findByUsername("newmember").orElseThrow().getPassword()));
         JsonNode login=tree(call("POST","/auth/login",null,Map.of("username","newmember","password","test-password-123")));
@@ -103,7 +103,58 @@ class CompanyLedgerIntegrationTests {
         registration.put("email","other@example.test");
         registration.put("password","short");
         assertEquals(400,call("POST","/auth/register",null,registration).statusCode());
-        assertEquals(4,users.count());
+        assertEquals(UserRole.values().length+1,users.count());
+    }
+
+    @Test void registrationRejectsDuplicateUsernameAndEmailIndependently() throws Exception {
+        assertEquals(201,call("POST","/auth/register",null,Map.of(
+            "username","unique.member","email","Unique@Example.test","password","test-password-123")).statusCode());
+        HttpResponse<String> usernameConflict=call("POST","/auth/register",null,Map.of(
+            "username","unique.member","email","different@example.test","password","test-password-123"));
+        assertEquals(409,usernameConflict.statusCode());
+        assertTrue(usernameConflict.body().contains("kullanıcı adı"));
+        for(String email:List.of("unique@example.test","UNIQUE@EXAMPLE.TEST")) {
+            HttpResponse<String> emailConflict=call("POST","/auth/register",null,Map.of(
+                "username","different.member","email",email,"password","test-password-123"));
+            assertEquals(409,emailConflict.statusCode());
+            assertTrue(emailConflict.body().contains("e-posta"));
+        }
+        assertEquals(UserRole.values().length+1,users.count());
+    }
+
+    @Test void registrationRejectsInvalidAndMissingFieldsWithoutPersistingUsers() throws Exception {
+        long initialCount=users.count();
+        Map<String,Object> valid=Map.of("username","valid.member","email","valid@example.test","password","test-password-123");
+        for(String field:valid.keySet()) {
+            Map<String,Object> missing=new HashMap<>(valid);missing.remove(field);
+            HttpResponse<String> response=call("POST","/auth/register",null,missing);
+            assertEquals(400,response.statusCode(),response.body());
+            assertTrue(json.readTree(response.body()).get("validationErrors").has(field));
+            Map<String,Object> blank=new HashMap<>(valid);blank.put(field," ");
+            assertEquals(400,call("POST","/auth/register",null,blank).statusCode());
+        }
+        for(Map.Entry<String,String> invalid:Map.of(
+                "username","bad name", "email","invalid-email", "password","short").entrySet()) {
+            Map<String,Object> body=new HashMap<>(valid);body.put(invalid.getKey(),invalid.getValue());
+            assertEquals(400,call("POST","/auth/register",null,body).statusCode());
+        }
+        Map<String,Object> tooManyBytes=new HashMap<>(valid);tooManyBytes.put("password","ş".repeat(37));
+        assertEquals(400,call("POST","/auth/register",null,tooManyBytes).statusCode());
+        assertEquals(initialCount,users.count());
+    }
+
+    @Test void registrationIgnoresInjectedAccountPrivilegesEvenWithAnInvalidToken() throws Exception {
+        Map<String,Object> body=new HashMap<>(Map.of("username","safe.member","email","safe@example.test","password","test-password-123"));
+        body.put("role","ADMIN");body.put("active",false);body.put("credentialVersion",999);
+        HttpResponse<String> response=call("POST","/auth/register","invalid-token",body);
+        assertEquals(201,response.statusCode(),response.body());
+        User user=users.findByUsername("safe.member").orElseThrow();
+        assertEquals(UserRole.USER,user.getRole());assertTrue(user.isActive());assertEquals(0L,user.getCredentialVersion());
+        assertEquals(401,call("POST","/auth/login",null,Map.of("username","safe.member","password","wrong-password")).statusCode());
+        JsonNode login=tree(call("POST","/auth/login",null,Map.of("username","safe.member","password","test-password-123")));
+        HttpResponse<String> me=call("GET","/users/me",login.get("token").asText(),null);
+        assertEquals(200,me.statusCode());assertEquals("USER",tree(me).get("role").asText());
+        assertFalse(me.body().contains("password"));
     }
 
     @Test void exactTotalsSeparateCashFromReceivablesAndIgnoreCancelledEntries() throws Exception {
@@ -165,7 +216,7 @@ class CompanyLedgerIntegrationTests {
         HttpResponse<String> r=call("POST","/users",admin,Map.of("username","newstaff","email","staff@example.test","password","a-test-password-123"));
         assertEquals(201,r.statusCode(),r.body());assertFalse(r.body().contains("password"));
         User staff=users.findByUsername("newstaff").orElseThrow();
-        assertEquals(UserRole.VIEWER,staff.getRole());assertTrue(encoder.matches("a-test-password-123",staff.getPassword()));
+        assertEquals(UserRole.USER,staff.getRole());assertTrue(encoder.matches("a-test-password-123",staff.getPassword()));
         Long adminId=users.findByUsername("admin").orElseThrow().getId();
         assertEquals(409,call("PATCH","/users/"+adminId+"/role",admin,Map.of("role","VIEWER")).statusCode());
         assertEquals(200,call("PATCH","/users/"+staff.getId()+"/role",admin,Map.of("role","ACCOUNTANT")).statusCode());
